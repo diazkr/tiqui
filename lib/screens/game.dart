@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../constants/colors.dart';
@@ -44,7 +45,7 @@ class _GameScreenState extends State<GameScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Player O',
+                          'You',
                           style: GoogleFonts.coiny(
                             fontSize: 20,
                             color: Colors.white,
@@ -58,7 +59,7 @@ class _GameScreenState extends State<GameScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Player X',
+                          'Robot',
                           style: GoogleFonts.coiny(
                             fontSize: 20,
                             color: Colors.white,
@@ -147,17 +148,43 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _tapped(int index) {
+    if (!oTurn || displayXO[index] != '' || resultDeclaration.isNotEmpty) {
+      return;
+    }
+
     setState(() {
-      if (oTurn && displayXO[index] == '') {
-        displayXO[index] = 'O';
-      } else if (!oTurn && displayXO[index] == '') {
-        displayXO[index] = 'X';
-      }
-
-      oTurn = !oTurn;
-
+      displayXO[index] = 'O';
+      oTurn = false;
       _checkWinner();
     });
+
+    if (resultDeclaration.isEmpty && displayXO.contains('')) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        _robotMove();
+      });
+    }
+  }
+
+  void _robotMove() {
+    if (resultDeclaration.isNotEmpty) return;
+    
+    List<int> availableMoves = [];
+    for (int i = 0; i < displayXO.length; i++) {
+      if (displayXO[i] == '') {
+        availableMoves.add(i);
+      }
+    }
+
+    if (availableMoves.isNotEmpty) {
+      final random = Random();
+      int robotChoice = availableMoves[random.nextInt(availableMoves.length)];
+      
+      setState(() {
+        displayXO[robotChoice] = 'X';
+        oTurn = true;
+        _checkWinner();
+      });
+    }
   }
 
   void _checkWinner() {
@@ -178,7 +205,8 @@ class _GameScreenState extends State<GameScreen> {
           displayXO[a] == displayXO[b] &&
           displayXO[a] == displayXO[c]) {
         setState(() {
-          resultDeclaration = 'Player ${displayXO[a]} Wins!';
+          String winner = displayXO[a] == 'O' ? 'You' : 'Robot';
+          resultDeclaration = '$winner Win!';
           _updatedScore(displayXO[a]);
         });
         return;
