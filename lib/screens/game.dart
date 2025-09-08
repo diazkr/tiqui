@@ -37,12 +37,13 @@ class _GameScreenState extends State<GameScreen> {
           children: [
             Expanded(
               flex: 1,
-              child: Center(
+              child: Container(
+                alignment: Alignment.bottomCenter,
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Text(
                           'You',
@@ -54,9 +55,9 @@ class _GameScreenState extends State<GameScreen> {
                         Text('$oScore', style: customFontWhite),
                       ],
                     ),
-                    SizedBox(width: 50),
+                    SizedBox(width: 60),
                     Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Text(
                           'Robot',
