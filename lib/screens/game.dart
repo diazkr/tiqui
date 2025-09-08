@@ -11,7 +11,12 @@ class GameScreen extends StatefulWidget {
 
 class _GameScreenState extends State<GameScreen> {
   bool oTurn = true;
+  String resultDeclaration = '';
   List<String> displayXO = ['', '', '', '', '', '', '', '', ''];
+
+  int oScore = 0;
+  int xScore = 0;
+  int filledBoxes = 0;
 
   static var customFontWhite = GoogleFonts.coiny(
     textStyle: const TextStyle(
@@ -29,7 +34,43 @@ class _GameScreenState extends State<GameScreen> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            Expanded(flex: 1, child: Center(child: Text('Score Board'))),
+            Expanded(
+              flex: 1,
+              child: Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Player O',
+                          style: GoogleFonts.coiny(
+                            fontSize: 20,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Text('$oScore', style: customFontWhite),
+                      ],
+                    ),
+                    SizedBox(width: 50),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Player X',
+                          style: GoogleFonts.coiny(
+                            fontSize: 20,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Text('$xScore', style: customFontWhite),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
             Expanded(
               flex: 3,
               child: GridView.builder(
@@ -67,7 +108,38 @@ class _GameScreenState extends State<GameScreen> {
                 },
               ),
             ),
-            Expanded(flex: 2, child: Text('Timer')),
+            Expanded(
+              flex: 2,
+              child: Center(
+                child:  Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text(resultDeclaration, style: customFontWhite),
+                    SizedBox(height: 10),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: MainColor.accentColor,
+                        foregroundColor: MainColor.primaryColor,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 30,
+                          vertical: 15,
+                        ),
+                        textStyle: GoogleFonts.coiny(
+                          textStyle: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      onPressed: () {
+                        _clearBoard();
+                      },
+                      child: Text('Play Again!'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -78,11 +150,65 @@ class _GameScreenState extends State<GameScreen> {
     setState(() {
       if (oTurn && displayXO[index] == '') {
         displayXO[index] = 'O';
-      } else {
+      } else if (!oTurn && displayXO[index] == '') {
         displayXO[index] = 'X';
       }
 
       oTurn = !oTurn;
+
+      _checkWinner();
+    });
+  }
+
+  void _checkWinner() {
+    final winPatterns = const [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6],
+    ];
+
+    for (final pattern in winPatterns) {
+      final a = pattern[0], b = pattern[1], c = pattern[2];
+      if (displayXO[a].isNotEmpty &&
+          displayXO[a] == displayXO[b] &&
+          displayXO[a] == displayXO[c]) {
+        setState(() {
+          resultDeclaration = 'Player ${displayXO[a]} Wins!';
+          _updatedScore(displayXO[a]);
+        });
+        return;
+      }
+    }
+
+    // Draw if board is full and no winner
+    if (!displayXO.contains('')) {
+      setState(() {
+        resultDeclaration = "It's a Draw!";
+      });
+    }
+  }
+
+  void _updatedScore(String winner) {
+    if (winner == 'O') {
+      oScore++;
+    } else if (winner == 'X') {
+      xScore++;
+    }
+  }
+
+  void _clearBoard() {
+    setState(() {
+      for (int i = 0; i < 9; i++) {
+        displayXO[i] = '';
+      }
+      resultDeclaration = '';
+      filledBoxes = 0;
+      oTurn = true;
     });
   }
 }
