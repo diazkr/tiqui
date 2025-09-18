@@ -1,7 +1,11 @@
-import 'dart:math';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../constants/colors.dart';
+import '../widgets/game_bottom_nav.dart';
+import '../widgets/game_dialogs.dart';
+import '../services/robot_ai.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
@@ -18,131 +22,175 @@ class _GameScreenState extends State<GameScreen> {
   int oScore = 0;
   int xScore = 0;
   int filledBoxes = 0;
+  GameDifficulty currentDifficulty = GameDifficulty.easy;
 
-  static var customFontWhite = GoogleFonts.coiny(
-    textStyle: const TextStyle(
-      color: Colors.white,
-      letterSpacing: 3,
-      fontSize: 28,
-    ),
-  );
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: MainColor.primaryColor,
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            Expanded(
-              flex: 1,
-              child: Container(
-                alignment: Alignment.bottomCenter,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Tic Tac Toe',
+                    style: GoogleFonts.coiny(
+                      fontSize: 22,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    'Difficulty: ${RobotAI.getDifficultyDisplayName(currentDifficulty)}',
+                    style: GoogleFonts.coiny(
+                      fontSize: 14,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 15),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Text(
                           'You',
                           style: GoogleFonts.coiny(
-                            fontSize: 20,
+                            fontSize: 18,
                             color: Colors.white,
                           ),
                         ),
-                        Text('$oScore', style: customFontWhite),
+                        Text(
+                          '$oScore',
+                          style: GoogleFonts.coiny(
+                            fontSize: 24,
+                            color: Colors.white,
+                            letterSpacing: 2,
+                          ),
+                        ),
                       ],
                     ),
-                    SizedBox(width: 60),
+                    const SizedBox(width: 60),
                     Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Text(
                           'Robot',
                           style: GoogleFonts.coiny(
-                            fontSize: 20,
+                            fontSize: 18,
                             color: Colors.white,
                           ),
                         ),
-                        Text('$xScore', style: customFontWhite),
+                        Text(
+                          '$xScore',
+                          style: GoogleFonts.coiny(
+                            fontSize: 24,
+                            color: Colors.white,
+                            letterSpacing: 2,
+                          ),
+                        ),
                       ],
                     ),
                   ],
                 ),
               ),
-            ),
-            Expanded(
-              flex: 3,
-              child: GridView.builder(
-                itemCount: 9,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                ),
-                itemBuilder: (BuildContext context, int index) {
-                  return GestureDetector(
-                    onTap: () {
-                      _tapped(index);
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(15),
-                        border: Border.all(
-                          width: 5,
-                          color: MainColor.primaryColor,
-                        ),
-                        color: MainColor.secondaryColor,
-                      ),
-                      child: Center(
-                        child: Text(
-                          displayXO[index],
-                          style: GoogleFonts.coiny(
-                            textStyle: TextStyle(
-                              fontSize: 64,
+              Expanded(
+                child: Container(
+                  constraints: const BoxConstraints(
+                    maxWidth: 350,
+                    maxHeight: 350,
+                  ),
+                  child: GridView.builder(
+                    itemCount: 9,
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
+                    ),
+                    itemBuilder: (BuildContext context, int index) {
+                      return GestureDetector(
+                        onTap: () {
+                          _tapped(index);
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(15),
+                            border: Border.all(
+                              width: 3,
                               color: MainColor.primaryColor,
+                            ),
+                            color: MainColor.secondaryColor,
+                          ),
+                          child: Center(
+                            child: Text(
+                              displayXO[index],
+                              style: GoogleFonts.coiny(
+                                fontSize: 48,
+                                color: MainColor.primaryColor,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 15),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      resultDeclaration,
+                      style: GoogleFonts.coiny(
+                        fontSize: 20,
+                        color: Colors.white,
+                        letterSpacing: 2,
                       ),
                     ),
-                  );
-                },
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Center(
-                child:  Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Text(resultDeclaration, style: customFontWhite),
-                    SizedBox(height: 10),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: MainColor.accentColor,
-                        foregroundColor: MainColor.primaryColor,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 30,
-                          vertical: 15,
-                        ),
-                        textStyle: GoogleFonts.coiny(
-                          textStyle: TextStyle(
-                            fontSize: 20,
+                    const SizedBox(height: 15),
+                    if (resultDeclaration.isNotEmpty)
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: MainColor.accentColor,
+                          foregroundColor: MainColor.primaryColor,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 30,
+                            vertical: 15,
+                          ),
+                          textStyle: GoogleFonts.coiny(
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
+                        onPressed: () {
+                          _clearBoard();
+                        },
+                        child: const Text('Play Again!'),
                       ),
-                      onPressed: () {
-                        _clearBoard();
-                      },
-                      child: Text('Play Again!'),
-                    ),
                   ],
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 10),
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        child: GameBottomNav(
+          onNewGame: _newGame,
+          onChangeDifficulty: _changeDifficulty,
+          onQuitGame: _quitGame,
         ),
       ),
     );
@@ -168,18 +216,10 @@ class _GameScreenState extends State<GameScreen> {
 
   void _robotMove() {
     if (resultDeclaration.isNotEmpty) return;
-    
-    List<int> availableMoves = [];
-    for (int i = 0; i < displayXO.length; i++) {
-      if (displayXO[i] == '') {
-        availableMoves.add(i);
-      }
-    }
 
-    if (availableMoves.isNotEmpty) {
-      final random = Random();
-      int robotChoice = availableMoves[random.nextInt(availableMoves.length)];
-      
+    int robotChoice = RobotAI.getMove(displayXO, currentDifficulty);
+
+    if (robotChoice != -1) {
       setState(() {
         displayXO[robotChoice] = 'X';
         oTurn = true;
@@ -239,5 +279,37 @@ class _GameScreenState extends State<GameScreen> {
       filledBoxes = 0;
       oTurn = true;
     });
+  }
+
+  void _newGame() {
+    _clearBoard();
+    setState(() {
+      oScore = 0;
+      xScore = 0;
+    });
+  }
+
+  void _changeDifficulty() async {
+    final newDifficulty = await GameDialogs.showDifficultyDialog(
+      context,
+      currentDifficulty,
+    );
+    if (newDifficulty != null) {
+      setState(() {
+        currentDifficulty = newDifficulty;
+      });
+      _clearBoard();
+    }
+  }
+
+  void _quitGame() async {
+    final shouldQuit = await GameDialogs.showQuitDialog(context);
+    if (shouldQuit) {
+      if (Platform.isAndroid) {
+        SystemNavigator.pop();
+      } else {
+        exit(0);
+      }
+    }
   }
 }
